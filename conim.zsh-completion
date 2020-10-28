@@ -1,6 +1,6 @@
-#compdef nimble
+#compdef conim
 
-_nimble() {
+_conim() {
   local line
 
   _arguments -C \
@@ -17,8 +17,8 @@ _nimble() {
     '(-d --depsOnly)'{-d,--depsOnly}'[Install only dependencies]'
 
   if [ $#line -eq 0 ]; then
-    # if the command line is empty and "nimble tasks" is successfull, add custom tasks
-    tasks=$(nimble tasks)
+    # if the command line is empty and "conim tasks" is successfull, add custom tasks
+    tasks=$(conim tasks)
     if [ $? -eq 0 ]; then
       compadd - $(echo $tasks | cut -f1 -d" " | tr '\n' ' ')
     fi
@@ -26,10 +26,10 @@ _nimble() {
 
   case $line[1] in
     install)
-      _nimble_installable_packages
+      _conim_installable_packages
     ;;
     uninstall|path|dump)
-      _nimble_installed_packages
+      _conim_installed_packages
     ;;
     init|publish|build|refresh|search|tasks)
       (( ret )) && _message 'no more arguments'
@@ -40,12 +40,12 @@ _nimble() {
   esac
 }
 
-function _nimble_installable_packages {
-  compadd - $(nimble list 2> /dev/null | grep -v '^ ' | tr -d ':')
+function _conim_installable_packages {
+  compadd - $(conim list 2> /dev/null | grep -v '^ ' | tr -d ':')
 }
 
-function _nimble_installed_packages {
-  compadd - $(nimble list -i 2> /dev/null | grep ']$' | cut -d' ' -f1)
+function _conim_installed_packages {
+  compadd - $(conim list -i 2> /dev/null | grep ']$' | cut -d' ' -f1)
 }
 
-_nimble "$@"
+_conim "$@"

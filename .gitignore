@@ -16,6 +16,8 @@ src/nimblepkg/reversedeps
 src/nimblepkg/version
 src/nimblepkg/download
 
+conim
+
 # Windows executables
 *.exe
 *.dll

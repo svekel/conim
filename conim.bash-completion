@@ -1,6 +1,7 @@
+#/usr/bin/env bash
 # vim: filetype=sh
 
-_nimble()
+_conim_completions()
 {
     local cur=${COMP_WORDS[COMP_CWORD]}
     local prev=${COMP_WORDS[COMP_CWORD-1]}
@@ -18,13 +19,13 @@ _nimble()
         _filedir '@(nim)'
         ;;
     install)
-        COMPREPLY=( $( nimble list 2> /dev/null | grep "^$cur" | grep -v '^ ' | tr -d ':') )
+        COMPREPLY=( $( conim list 2> /dev/null | grep "^$cur" | grep -v '^ ' | tr -d ':') )
         ;;
     path)
-        COMPREPLY=( $( nimble list -i 2> /dev/null | cut -d' ' -f1 | grep "^$cur" ) )
+        COMPREPLY=( $( conim list -i 2> /dev/null | cut -d' ' -f1 | grep "^$cur" ) )
         ;;
     uninstall)
-        COMPREPLY=( $( nimble list -i 2> /dev/null | awk -F'( |\\[|\\])' '{ f=4; while($f) { l=length($f); if(substr($f, l, l)==",") { $f=substr($f, 0, l-1) }; print $1 "@" $f; f++; }}' | sort -f | grep "^$cur" ) )
+        COMPREPLY=( $( conim list -i 2> /dev/null | awk -F'( |\\[|\\])' '{ f=4; while($f) { l=length($f); if(substr($f, l, l)==",") { $f=substr($f, 0, l-1) }; print $1 "@" $f; f++; }}' | sort -f | grep "^$cur" ) )
             ;;
     list)
         COMPREPLY=( $( compgen -W '--ver -i --installed' -- $cur ) )
@@ -43,4 +44,4 @@ _nimble()
     return 0
 }
 
-complete -F _nimble nimble
+complete -F _conim_completions conim

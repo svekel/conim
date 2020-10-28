@@ -1,14 +1,13 @@
 # Package
 
-version       = "0.12.0"
+version       = "0.12.1"
 author        = "Sven Keller"
 description   = "Fork of Nim package manager (Nimble). Customized to handle own private projects."
 license       = "BSD"
 
 bin = @["conim"]
 srcDir = "src"
-skipFiles = @["nimble.nim"]
-# installExt = @["nim"]
+skipFiles = @["nimble.nim", "nimble.nim.cfg"]
 
 # Dependencies
 
