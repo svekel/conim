@@ -282,6 +282,7 @@ proc getPackage*(pkg: string, options: Options, resPkg: var Package): bool =
         resPkg = p.fromJson()
         resPkg = resolveAlias(resPkg, options)
         return true
+  
 
 proc getPackageList*(options: Options): seq[Package] =
   ## Returns the list of packages found in the downloaded packages.json files.
@@ -314,8 +315,7 @@ proc findNimbleFile*(dir: string; error: bool): string =
       raise newException(NimbleError,
           "Could not find a file with a .nimble extension inside the specified directory: $1" % dir)
     else:
-      display("Warning:", "No .nimble or .nimble-link file found for " &
-              dir, Warning, HighPriority)
+      display("Warning:", "No .nimble or .nimble-link file found for " & dir, Warning, HighPriority)
 
   if result.splitFile.ext == ".nimble-link":
     # Return the path of the real .nimble file.

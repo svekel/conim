@@ -78,7 +78,7 @@ type
 
 const
   help* = """
-Usage: nimble [nimbleopts] COMMAND [cmdopts]
+Usage: conim [nimbleopts] COMMAND [cmdopts]
 
 Commands:
   install      [pkgname, ...]     Installs a list of packages.
@@ -156,7 +156,7 @@ proc writeHelp*(quit=true) =
     raise NimbleQuit(msg: "")
 
 proc writeVersion*() =
-  echo("nimble v$# compiled at $# $#" %
+  echo("conim v$# compiled at $# $#" %
       [nimbleVersion, CompileDate, CompileTime])
   const execResult = gorgeEx("git rev-parse HEAD")
   when execResult[0].len > 0 and execResult[1] == QuitSuccess:

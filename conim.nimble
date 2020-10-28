@@ -1,13 +1,14 @@
 # Package
 
 version       = "0.12.0"
-author        = "Dominik Picheta"
-description   = "Nim package manager."
+author        = "Sven Keller"
+description   = "Fork of Nim package manager (Nimble). Customized to handle own private projects."
 license       = "BSD"
 
-bin = @["nimble"]
+bin = @["conim"]
 srcDir = "src"
-installExt = @["nim"]
+skipFiles = @["nimble.nim"]
+# installExt = @["nim"]
 
 # Dependencies
 

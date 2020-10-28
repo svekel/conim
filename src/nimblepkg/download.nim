@@ -1,7 +1,7 @@
 # Copyright (C) Dominik Picheta. All rights reserved.
 # BSD License. Look at license.txt for more info.
 
-import parseutils, os, osproc, strutils, tables, pegs, uri
+import parseutils, os, osproc, strutils, tables, pegs, uri, strformat
 import packageinfo, packageparser, version, tools, common, options, cli
 from algorithm import SortOrder, sorted
 from sequtils import toSeq, filterIt, map
@@ -258,6 +258,39 @@ proc downloadPkg*(url: string, verRange: VersionRange,
     downloadDir / subdir,
     doDownload(modUrl, downloadDir, verRange, downMethod, options)
   )
+
+  if verRange.kind != verSpecial:
+    ## Makes sure that the downloaded package's version satisfies the requested
+    ## version range.
+    let pkginfo = getPkgInfo(result[0], options)
+    if pkginfo.version.newVersion notin verRange:
+      raise newException(NimbleError,
+        "Downloaded package's version does not satisfy requested version " &
+        "range: wanted $1 got $2." %
+        [$verRange, $pkginfo.version])
+
+proc customDownloadPkg*(url: string, verRange: VersionRange,
+                 downMethod: DownloadMethod,
+                 subdir: string,
+                 options: Options,
+                 downloadPath = ""): (string, Version) =
+  let downloadDir = (getNimbleTempDir() / getDownloadDirName(url, verRange))
+  # if dirExists(downloadDir):
+  #   removeDir(downloadDir)
+  createDir(downloadDir)
+  let testUrls = [
+    &"https://github.com/svekel/{url}.git", 
+    &"git@bitbucket.org:cortona/{url}.git"
+  ]
+  
+  for modUrl in testUrls:
+    # echo modUrl, " - ", verRange, " - ", downMethod, " - ", downloadDir
+    try:
+      result = (downloadDir, doDownload(modUrl, downloadDir, verRange, git, options))
+    except:
+      discard
+      # let msg = getCurrentExceptionMsg()
+      # echo "Got exception with message ", msg,
 
   if verRange.kind != verSpecial:
     ## Makes sure that the downloaded package's version satisfies the requested

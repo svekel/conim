@@ -13,16 +13,30 @@ type
     pkgNimDep: string
     pkgType: string
 
+
 proc writeExampleIfNonExistent(file: string, content: string) =
   if not fileExists(file):
     writeFile(file, content)
   else:
-    display("Info:", "File " & file & " already exists, did not write " &
-            "example code", priority = HighPriority)
+    display("Info:", "File " & file & " already exists, did not write " & "example code", priority = HighPriority)
 
 proc createPkgStructure*(info: PkgInitInfo, pkgRoot: string) =
   # Create source directory
   createDirD(pkgRoot / info.pkgSrcDir)
+
+  # Create gitignore
+  let gitignore = pkgRoot / info.pkgSrcDir / ".gitignore"
+  writeExampleIfNonExistent(gitignore, """
+# Ignore all
+*
+# Unignore all with extensions
+!*.*
+# Unignore all dirs
+!*/
+
+.exe
+.run
+  """)
 
   # Initialise the source code directories and create some example code.
   var nimbleFileOptions = ""
