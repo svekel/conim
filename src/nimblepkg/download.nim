@@ -254,6 +254,8 @@ proc downloadPkg*(url: string, verRange: VersionRange,
   else:
     display("Downloading", "$1 using $2" % [modUrl, $downMethod],
             priority = HighPriority)
+
+  echo modUrl, " ", downloadDir, " ", options
   result = (
     downloadDir / subdir,
     doDownload(modUrl, downloadDir, verRange, downMethod, options)
@@ -274,7 +276,7 @@ proc customDownloadPkg*(url: string, verRange: VersionRange,
                  subdir: string,
                  options: Options,
                  downloadPath = ""): (string, Version) =
-  let downloadDir = (getNimbleTempDir() / getDownloadDirName(url, verRange))
+  let downloadDir =  getNimbleTempDir() / "git_" & getDownloadDirName(url, verRange)
   # if dirExists(downloadDir):
   #   removeDir(downloadDir)
   createDir(downloadDir)
@@ -282,15 +284,19 @@ proc customDownloadPkg*(url: string, verRange: VersionRange,
     &"https://github.com/svekel/{url}", 
     &"git@bitbucket.org:cortona/{url}.git"
   ]
+
   
   for modUrl in testUrls:
-    # echo modUrl, " - ", verRange, " - ", downMethod, " - ", downloadDir
+    if subdir.len > 0:
+      display("downloading", "Try $1 using $2 (subdir is '$3')" % [modUrl, $downMethod, subdir], priority = HighPriority)
+    else:
+      display("downloading", "Try  $1 using $2" % [modUrl, $downMethod], priority = HighPriority)
+
     try:
       result = (downloadDir, doDownload(modUrl, downloadDir, verRange, git, options))
+      break
     except:
-      discard
-      # let msg = getCurrentExceptionMsg()
-      # echo "Got exception with message ", msg,
+      display("downloading", "failed")
 
   if verRange.kind != verSpecial:
     ## Makes sure that the downloaded package's version satisfies the requested
