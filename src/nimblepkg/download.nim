@@ -255,7 +255,6 @@ proc downloadPkg*(url: string, verRange: VersionRange,
     display("Downloading", "$1 using $2" % [modUrl, $downMethod],
             priority = HighPriority)
 
-  echo modUrl, " ", downloadDir, " ", options
   result = (
     downloadDir / subdir,
     doDownload(modUrl, downloadDir, verRange, downMethod, options)
