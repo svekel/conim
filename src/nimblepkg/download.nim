@@ -279,7 +279,7 @@ proc customDownloadPkg*(url: string, verRange: VersionRange,
   #   removeDir(downloadDir)
   createDir(downloadDir)
   let testUrls = [
-    &"https://github.com/svekel/{url}.git", 
+    &"https://github.com/svekel/{url}", 
     &"git@bitbucket.org:cortona/{url}.git"
   ]
   
