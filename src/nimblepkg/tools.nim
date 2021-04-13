@@ -4,6 +4,7 @@
 # Various miscellaneous utility functions reside here.
 import osproc, pegs, strutils, os, uri, sets, json, parseutils
 import version, cli, options
+from net import SslCVerifyMode, newContext, SslContext
 
 proc extractBin(cmd: string): string =
   if cmd[0] == '"':
@@ -40,6 +41,7 @@ proc doCmd*(cmd: string) =
         "Execution failed with exit code $1\nCommand: $2\nOutput: $3" %
         [$exitCode, cmd, output])
 
+{.warning[Deprecated]: off.}
 proc doCmdEx*(cmd: string): tuple[output: TaintedString, exitCode: int] =
   let bin = extractBin(cmd)
   if findExe(bin) == "":
@@ -164,3 +166,10 @@ proc getNimbleUserTempDir*(): string =
   else:
     tmpdir = getTempDir()
   return tmpdir
+
+proc newSSLContext*(disabled: bool): SslContext =
+  var sslVerifyMode = CVerifyPeer
+  if disabled:
+    display("Warning:", "disabling SSL certificate checking", Warning)
+    sslVerifyMode = CVerifyNone
+  return newContext(verifyMode = sslVerifyMode)

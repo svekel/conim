@@ -1,3 +1,9 @@
+# ignore files wo extension (posix binaries)
+*
+!*.*
+!*/
+
+
 # Any path
 *.swp
 *~
@@ -33,4 +39,13 @@ conim
 *.orig
 
 # Test procedure artifacts
-nimble_*.nims
+/buildTests
+
+# executables from test and build (already gitignored but keeping for documentation)
+# /nimble
+# src/nimblepkg/cli
+# src/nimblepkg/packageinfo
+# src/nimblepkg/packageparser
+# src/nimblepkg/reversedeps
+# src/nimblepkg/version
+# src/nimblepkg/download

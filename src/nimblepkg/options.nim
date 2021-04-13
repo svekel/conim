@@ -40,6 +40,7 @@ type
     nim*: string # Nim compiler location
     localdeps*: bool # True if project local deps mode
     developLocaldeps*: bool # True if local deps + nimble develop pkg1 ...
+    disableSslCertCheck*: bool
 
   ActionType* = enum
     actionNil, actionRefresh, actionInit, actionDump, actionPublish,
@@ -107,7 +108,7 @@ Commands:
                                   or -- arg are passed to the binary when it is run.
   c, cc, js    [opts, ...] f.nim  Builds a file inside a package. Passes options
                                   to the Nim compiler.
-  test                            Compiles and executes tests
+  test                            Compiles and executes tests.
                [-c, --continue]   Don't stop execution on a failed test.
                [opts, ...]        Passes options to the Nim compiler.
   doc, doc2    [opts, ...] f.nim  Builds documentation for a file inside a
@@ -128,6 +129,7 @@ Commands:
                                   external tools. The argument can be a
                                   .nimble file, a project directory or
                                   the name of an installed package.
+               [--ini, --json]    Selects the output format (the default is --ini).
 
 Nimble Options:
   -h, --help                      Print this help message.
@@ -136,13 +138,14 @@ Nimble Options:
   -n, --reject                    Reject all interactive prompts.
   -l, --localdeps                 Run in project local dependency mode
       --ver                       Query remote server for package version
-                                  information when searching or listing packages
+                                  information when searching or listing packages.
       --nimbleDir:dirname         Set the Nimble directory.
       --nim:path                  Use specified path for Nim compiler
       --silent                    Hide all Nimble and Nim output
       --verbose                   Show all non-debug output.
       --debug                     Show all output including debug messages.
       --noColor                   Don't colorise output.
+      --noSSLCheck                Don't check SSL certificates.
 
 For more information read the Github readme:
   https://github.com/nim-lang/nimble#readme
@@ -352,8 +355,11 @@ proc getNimBin*(options: Options): string =
   return options.nim
 
 proc setRunOptions(result: var Options, key, val: string, isArg: bool) =
-  if result.action.runFile.isNone() and (isArg or val == "--"):
-    result.action.runFile = some(key)
+  if result.action.runFile.isNone():
+    if isArg or val == "--":
+      result.action.runFile = some(key)
+    else:
+      result.action.compileFlags.add(val)
   else:
     result.action.runFlags.add(val)
 
@@ -424,6 +430,7 @@ proc parseFlag*(flag, val: string, result: var Options, kind = cmdLongOption) =
   of "disablevalidation": result.disableValidation = true
   of "nim": result.nim = val
   of "localdeps", "l": result.localdeps = true
+  of "nosslcheck": result.disableSslCertCheck = true
   else: isGlobalFlag = false
 
   var wasFlagHandled = true
@@ -510,8 +517,7 @@ proc parseMisc(options: var Options) =
 
 proc handleUnknownFlags(options: var Options) =
   if options.action.typ == actionRun:
-    # ActionRun uses flags that come before the command as compilation flags
-    # and flags that come after as run flags.
+    # actionRun uses flags that come before the command as compilation flags.
     options.action.compileFlags =
       map(options.unknownFlags, x => getFlagString(x[0], x[1], x[2]))
     options.unknownFlags = @[]

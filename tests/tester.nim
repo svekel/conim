@@ -6,9 +6,10 @@ import osproc, unittest, strutils, os, sequtils, sugar, strformat
 # packages are shared between each test which causes a multitude of issues
 # and is really fragile.
 
-var rootDir = getCurrentDir().parentDir()
-var nimblePath = rootDir / "src" / addFileExt("nimble", ExeExt)
-var installDir = rootDir / "tests" / "nimbleDir"
+let rootDir = getCurrentDir().parentDir()
+let nimblePath = rootDir / "src" / addFileExt("nimble", ExeExt)
+let installDir = rootDir / "tests" / "nimbleDir"
+let buildTests = rootDir / "buildTests"
 const path = "../src/nimble"
 const stringNotFound = -1
 
@@ -122,10 +123,10 @@ suite "nimble refresh":
       writeFile(configFile, """
         [PackageList]
         name = "official"
-        url = "http://google.com"
-        url = "http://google.com/404"
-        url = "http://irclogs.nim-lang.org/packages.json"
-        url = "http://nim-lang.org/nimble/packages.json"
+        url = "https://google.com"
+        url = "https://google.com/404"
+        url = "https://irclogs.nim-lang.org/packages.json"
+        url = "https://nim-lang.org/nimble/packages.json"
         url = "https://github.com/nim-lang/packages/raw/master/packages.json"
       """.unindent)
 
@@ -135,7 +136,7 @@ suite "nimble refresh":
       check exitCode == QuitSuccess
       check inLines(lines, "config file at")
       check inLines(lines, "official package list")
-      check inLines(lines, "http://google.com")
+      check inLines(lines, "https://google.com")
       check inLines(lines, "packages.json file is invalid")
       check inLines(lines, "404 not found")
       check inLines(lines, "Package list downloaded.")
@@ -194,8 +195,9 @@ suite "nimscript":
       check output.contains("Before build")
       check output.contains("After build")
       let lines = output.strip.processOutput()
-      check lines[1].startsWith("Before PkgDir:")
-      check lines[1].endsWith("tests" / "nimscript")
+      for line in lines:
+        if lines[3].startsWith("Before PkgDir:"):
+          check line.endsWith("tests" / "nimscript")
       check lines[^1].startsWith("After PkgDir:")
       check lines[^1].endsWith("tests" / "nimbleDir" / "pkgs" / "nimscript-0.1.0")
 
@@ -275,7 +277,7 @@ suite "nimscript":
 
   test "nimscript evaluation error message":
     cd "invalidPackage":
-      var (output, exitCode) = execNimble("check")
+      let (output, exitCode) = execNimble("check")
       let lines = output.strip.processOutput()
       check(lines[^2].contains("undeclared identifier: 'thisFieldDoesNotExist'"))
       check exitCode == QuitFailure
@@ -373,6 +375,54 @@ suite "nimble dump":
       let (outp, exitCode) = execNimble("dump", "testdump")
       check: exitCode == 0
       check: outp.processOutput.inLines("desc: \"Test package for dump command\"")
+
+  test "can dump when explicitly asking for INI format":
+    const outpExpected = """
+name: "testdump"
+version: "0.1.0"
+author: "nigredo-tori"
+desc: "Test package for dump command"
+license: "BSD"
+skipDirs: ""
+skipFiles: ""
+skipExt: ""
+installDirs: ""
+installFiles: ""
+installExt: ""
+requires: ""
+bin: ""
+binDir: ""
+srcDir: ""
+backend: "c"
+"""
+    let (outp, exitCode) = execNimble("dump", "--ini", "testdump")
+    check: exitCode == 0
+    check: outp == outpExpected
+
+  test "can dump in JSON format":
+    const outpExpected = """
+{
+  "name": "testdump",
+  "version": "0.1.0",
+  "author": "nigredo-tori",
+  "desc": "Test package for dump command",
+  "license": "BSD",
+  "skipDirs": [],
+  "skipFiles": [],
+  "skipExt": [],
+  "installDirs": [],
+  "installFiles": [],
+  "installExt": [],
+  "requires": [],
+  "bin": [],
+  "binDir": "",
+  "srcDir": "",
+  "backend": "c"
+}
+"""
+    let (outp, exitCode) = execNimble("dump", "--json", "testdump")
+    check: exitCode == 0
+    check: outp == outpExpected
 
 suite "can handle two binary versions":
   setup:
@@ -660,7 +710,7 @@ suite "Module tests":
 suite "nimble run":
   test "Invalid binary":
     cd "run":
-      var (output, exitCode) = execNimble(
+      let (output, exitCode) = execNimble(
         "--debug", # Flag to enable debug verbosity in Nimble
         "run", # Run command invokation
         "blahblah", # The command to run
@@ -671,60 +721,89 @@ suite "nimble run":
 
   test "Parameters passed to executable":
     cd "run":
-      var (output, exitCode) = execNimble(
+      let (output, exitCode) = execNimble(
         "--debug", # Flag to enable debug verbosity in Nimble
         "run", # Run command invokation
         "run", # The command to run
-        "--debug", # First argument passed to the executed command
+        "--test", # First argument passed to the executed command
         "check" # Second argument passed to the executed command.
       )
       check exitCode == QuitSuccess
-      check output.contains("tests$1run$1$2 --debug check" %
+      check output.contains("tests$1run$1$2 --test check" %
                             [$DirSep, "run".changeFileExt(ExeExt)])
-      check output.contains("""Testing `nimble run`: @["--debug", "check"]""")
+      check output.contains("""Testing `nimble run`: @["--test", "check"]""")
 
   test "Parameters not passed to single executable":
     cd "run":
-      var (output, exitCode) = execNimble(
+      let (output, exitCode) = execNimble(
         "--debug", # Flag to enable debug verbosity in Nimble
         "run", # Run command invokation
-        "--debug" # First argument passed to the executed command
+        "--", # Separator for arguments
+        "--test" # First argument passed to the executed command
       )
       check exitCode == QuitSuccess
-      check output.contains("tests$1run$1$2 --debug" %
+      check output.contains("tests$1run$1$2 --test" %
                             [$DirSep, "run".changeFileExt(ExeExt)])
-      check output.contains("""Testing `nimble run`: @["--debug"]""")
+      check output.contains("""Testing `nimble run`: @["--test"]""")
 
   test "Parameters passed to single executable":
     cd "run":
-      var (output, exitCode) = execNimble(
+      let (output, exitCode) = execNimble(
         "--debug", # Flag to enable debug verbosity in Nimble
         "run", # Run command invokation
         "--", # Flag to set run file to "" before next argument
-        "--debug", # First argument passed to the executed command
+        "--test", # First argument passed to the executed command
         "check" # Second argument passed to the executed command.
       )
       check exitCode == QuitSuccess
-      check output.contains("tests$1run$1$2 --debug check" %
+      check output.contains("tests$1run$1$2 --test check" %
                             [$DirSep, "run".changeFileExt(ExeExt)])
-      check output.contains("""Testing `nimble run`: @["--debug", "check"]""")
+      check output.contains("""Testing `nimble run`: @["--test", "check"]""")
 
   test "Executable output is shown even when not debugging":
     cd "run":
-      var (output, exitCode) =
+      let (output, exitCode) =
         execNimble("run", "run", "--option1", "arg1")
       check exitCode == QuitSuccess
       check output.contains("""Testing `nimble run`: @["--option1", "arg1"]""")
 
   test "Quotes and whitespace are well handled":
     cd "run":
-      var (output, exitCode) = execNimble(
+      let (output, exitCode) = execNimble(
         "run", "run", "\"", "\'", "\t", "arg with spaces"
       )
       check exitCode == QuitSuccess
       check output.contains(
         """Testing `nimble run`: @["\"", "\'", "\t", "arg with spaces"]"""
       )
+
+  test "Compile flags before executable name":
+    cd "run":
+      let (output, exitCode) = execNimble(
+        "run", # Run command invokation
+        "--debug", # Flag to enable debug verbosity in Nimble
+        "run", # The executable to run
+        "--test" # First argument passed to the executed command
+      )
+      check exitCode == QuitSuccess
+      check output.contains("tests$1run$1$2 --test" %
+                            [$DirSep, "run".changeFileExt(ExeExt)])
+      echo output
+      check output.contains("""Testing `nimble run`: @["--test"]""")
+
+  test "Compile flags before --":
+    cd "run":
+      let (output, exitCode) = execNimble(
+        "run", # Run command invokation
+        "--debug", # Flag to enable debug verbosity in Nimble
+        "--", # Separator for arguments
+        "--test" # First argument passed to the executed command
+      )
+      check exitCode == QuitSuccess
+      check output.contains("tests$1run$1$2 --test" %
+                            [$DirSep, "run".changeFileExt(ExeExt)])
+      echo output
+      check output.contains("""Testing `nimble run`: @["--test"]""")
 
 suite "project local deps mode":
   test "nimbledeps exists":
@@ -753,7 +832,7 @@ suite "project local deps mode":
 
 suite "misc tests":
   test "depsOnly + flag order test":
-    var (output, exitCode) = execNimbleYes(
+    let (output, exitCode) = execNimbleYes(
       "--depsOnly", "install", "https://github.com/nimble-test/packagebin2"
     )
     check(not output.contains("Success: packagebin2 installed successfully."))
@@ -796,11 +875,11 @@ suite "misc tests":
 
   test "NimbleVersion is defined":
     cd "nimbleVersionDefine":
-      var (output, exitCode) = execNimble("c", "-r", "src/nimbleVersionDefine.nim")
+      let (output, exitCode) = execNimble("c", "-r", "src/nimbleVersionDefine.nim")
       check output.contains("0.1.0")
       check exitCode == QuitSuccess
 
-      var (output2, exitCode2) = execNimble("run", "nimbleVersionDefine")
+      let (output2, exitCode2) = execNimble("run", "nimbleVersionDefine")
       check output2.contains("0.1.0")
       check exitCode2 == QuitSuccess
 
@@ -849,7 +928,7 @@ suite "misc tests":
 suite "issues":
   test "issue 801":
     cd "issue801":
-      var (output, exitCode) = execNimbleYes("test")
+      let (output, exitCode) = execNimbleYes("test")
       check exitCode == QuitSuccess
 
       # Verify hooks work
@@ -884,8 +963,9 @@ suite "issues":
     cd "issue727":
       var (output, exitCode) = execNimbleYes("c", "src/abc")
       check exitCode == QuitSuccess
-      check fileExists("src/abc".addFileExt(ExeExt))
+      check fileExists(buildTests / "abc".addFileExt(ExeExt))
       check not fileExists("src/def".addFileExt(ExeExt))
+      check not fileExists(buildTests / "def".addFileExt(ExeExt))
 
       (output, exitCode) = execNimbleYes("uninstall", "-i", "timezones")
       check exitCode == QuitSuccess
@@ -903,7 +983,7 @@ suite "issues":
     cd "issue708":
       # TODO: We need a way to filter out compiler messages from the messages
       # written by our nimble scripts.
-      var (output, exitCode) = execNimbleYes("install", "--verbose")
+      let (output, exitCode) = execNimbleYes("install", "--verbose")
       check exitCode == QuitSuccess
       let lines = output.strip.processOutput()
       check(inLines(lines, "hello"))
@@ -928,13 +1008,13 @@ suite "issues":
 
   test "Passing command line arguments to a task (#633)":
     cd "issue633":
-      var (output, exitCode) = execNimble("testTask", "--testTask")
+      let (output, exitCode) = execNimble("testTask", "--testTask")
       check exitCode == QuitSuccess
       check output.contains("Got it")
 
   test "error if `bin` is a source file (#597)":
     cd "issue597":
-      var (output, exitCode) = execNimble("build")
+      let (output, exitCode) = execNimble("build")
       check exitCode != QuitSuccess
       check output.contains("entry should not be a source file: test.nim")
 
@@ -949,7 +1029,7 @@ suite "issues":
 
   test "issue 564":
     cd "issue564":
-      var (_, exitCode) = execNimble("build")
+      let (_, exitCode) = execNimble("build")
       check exitCode == QuitSuccess
 
   test "issues #280 and #524":

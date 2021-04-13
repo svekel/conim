@@ -810,6 +810,7 @@ This should ideally be a valid SPDX identifier. See https://spdx.org/licenses/.
     "LGPL-2.1",
     "LGPL-3.0",
     "EPL-2.0",
+    "AGPL-3.0",
     # This is what npm calls "UNLICENSED" (which is too similar to "Unlicense")
     "Proprietary",
     "Other"
@@ -821,6 +822,14 @@ This should ideally be a valid SPDX identifier. See https://spdx.org/licenses/.
 Please specify a valid SPDX identifier.""",
       "MIT"
     )
+
+  if pkgLicense in ["GPL-2.0", "GPL-3.0", "LGPL-2.1", "LGPL-3.0", "AGPL-3.0"]:
+    let orLater = options.promptList(
+      "\"Or any later version\" clause?", ["Yes", "No"])
+    if orLater == "Yes":
+      pkgLicense.add("-or-later")
+    else:
+      pkgLicense.add("-only")
 
   # Ask for Nim dependency
   let nimDepDef = getNimrodVersion(options)
