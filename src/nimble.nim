@@ -414,9 +414,10 @@ proc getDownloadInfo*(pv: PkgTuple, options: Options,
     else:
       # If package is not found give the user a chance to refresh
       # package.json
-      if doPrompt and
-          options.prompt(pv.name & " not found in any local packages.json, " &
-                         "check internet for updated packages?"):
+      if doPrompt:
+      # if doPrompt and
+      #     options.prompt(pv.name & " not found in any local packages.json, " &
+      #                    "check internet for updated packages?"):
         refresh(options)
 
         # Once we've refreshed, try again, but don't prompt if not found

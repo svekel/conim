@@ -289,7 +289,7 @@ proc customDownloadPkg*(url: string, verRange: VersionRange,
     if subdir.len > 0:
       display("downloading", "Try $1 using $2 (subdir is '$3')" % [modUrl, $downMethod, subdir], priority = HighPriority)
     else:
-      display("downloading", "Try  $1 using $2" % [modUrl, $downMethod], priority = HighPriority)
+      display("downloading", "Try $1 using $2" % [modUrl, $downMethod], priority = HighPriority)
 
     try:
       result = (downloadDir, doDownload(modUrl, downloadDir, verRange, git, options))
