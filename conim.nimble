@@ -23,3 +23,20 @@ when defined(nimdistros):
 task test, "Run the Nimble tester!":
   withDir "tests":
     exec "nim c -r tester"
+
+
+# to sync to nimble origin
+#
+# add remote
+# $git remote add upstream https://github.com/otheruser/repo.git
+#
+# check remotes
+# $git remote -v
+# 
+# $git fetch upstream
+#
+# List all local and remote-tracking branches
+# $ git branch -va
+#
+# Merge upstream's master into our own
+# $ git merge upstream/master
