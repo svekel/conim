@@ -1175,6 +1175,9 @@ proc doAction(options: var Options) =
               Warning, HighPriority)
       for i in 0..<pkgInfo.foreignDeps.len:
         display("Hint:", "  " & pkgInfo.foreignDeps[i], Warning, HighPriority)
+  of actionClone:
+    for pkg in options.action.packages:
+      clonePkg(pkg)
   of actionUninstall:
     uninstall(options)
   of actionSearch:

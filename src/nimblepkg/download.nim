@@ -1,7 +1,7 @@
 # Copyright (C) Dominik Picheta. All rights reserved.
 # BSD License. Look at license.txt for more info.
 
-import parseutils, os, osproc, strutils, tables, pegs, uri, strformat
+import parseutils, os, osproc, strutils, tables, pegs, uri
 import packageinfo, packageparser, version, tools, common, options, cli
 from algorithm import SortOrder, sorted
 from sequtils import toSeq, filterIt, map
@@ -270,29 +270,42 @@ proc downloadPkg*(url: string, verRange: VersionRange,
         "range: wanted $1 got $2." %
         [$verRange, $pkginfo.version])
 
-proc customDownloadPkg*(url: string, verRange: VersionRange,
+proc clonePkg*(pkg: PkgTuple) =
+  let downloadDir =   "./" & pkg.name
+  # if dirExists(downloadDir):
+  #   removeDir(downloadDir)
+  createDir(downloadDir)
+
+  for modUrl in CORTONA_URLs:
+    var url = modUrl.replace("<pkgname>", pkg.name)
+    display("downloading", "Try $1 using $2" % [url, $DownloadMethod.git], priority = HighPriority)
+
+    try:
+      discard doDownload(url, downloadDir, pkg.ver, git, Options())
+      break
+    except:
+      display("downloading", "package not found")
+
+proc customDownloadPkg*(pkgname: string, verRange: VersionRange,
                  downMethod: DownloadMethod,
                  subdir: string,
                  options: Options,
                  downloadPath = ""): (string, Version) =
-  let downloadDir =  getNimbleTempDir() / "git_" & getDownloadDirName(url, verRange)
+  let downloadDir =  getNimbleTempDir() / "git_" & getDownloadDirName(pkgname, verRange)
   # if dirExists(downloadDir):
   #   removeDir(downloadDir)
   createDir(downloadDir)
-  let testUrls = [
-    &"https://github.com/svekel/{url}", 
-    &"git@bitbucket.org:cortona/{url}.git"
-  ]
 
   
-  for modUrl in testUrls:
+  for modUrl in CORTONA_URLs:
+    var url = modUrl.replace("<pkgname>", pkgname)
     if subdir.len > 0:
-      display("downloading", "Try $1 using $2 (subdir is '$3')" % [modUrl, $downMethod, subdir], priority = HighPriority)
+      display("downloading", "Try $1 using $2 (subdir is '$3')" % [url, $downMethod, subdir], priority = HighPriority)
     else:
-      display("downloading", "Try $1 using $2" % [modUrl, $downMethod], priority = HighPriority)
+      display("downloading", "Try $1 using $2" % [url, $downMethod], priority = HighPriority)
 
     try:
-      result = (downloadDir, doDownload(modUrl, downloadDir, verRange, git, options))
+      result = (downloadDir, doDownload(url, downloadDir, verRange, git, options))
       break
     except:
       display("downloading", "failed")

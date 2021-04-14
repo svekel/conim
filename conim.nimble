@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.13.1"
+version       = "0.13.2"
 author        = "Sven Keller"
 description   = "Fork of Nim package manager (Nimble). Customized to handle own private projects."
 license       = "BSD"

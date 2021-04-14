@@ -44,7 +44,7 @@ type
 
   ActionType* = enum
     actionNil, actionRefresh, actionInit, actionDump, actionPublish,
-    actionInstall, actionSearch,
+    actionInstall, actionClone, actionSearch,
     actionList, actionBuild, actionPath, actionUninstall, actionCompile,
     actionDoc, actionCustom, actionTasks, actionDevelop, actionCheck,
     actionRun
@@ -54,7 +54,7 @@ type
     of actionNil, actionList, actionPublish, actionTasks, actionCheck: nil
     of actionRefresh:
       optionalURL*: string # Overrides default package list.
-    of actionInstall, actionPath, actionUninstall, actionDevelop:
+    of actionInstall, actionClone, actionPath, actionUninstall, actionDevelop:
       packages*: seq[PkgTuple] # Optional only for actionInstall
                                # and actionDevelop.
       passNimFlags*: seq[string]
@@ -85,6 +85,8 @@ Commands:
   install      [pkgname, ...]     Installs a list of packages.
                [-d, --depsOnly]   Installs only dependencies of the package.
                [opts, ...]        Passes options to the Nim compiler.
+  clone        [pkgname, ...]     Clone cortona git repository.
+                                  Example: git clone git@bitbucket.org:cortona/<pkgname>.git.
   develop      [pkgname, ...]     Clones a list of packages for development.
                                   Symlinks the cloned packages or any package
                                   in the current working directory.
@@ -173,6 +175,8 @@ proc parseActionType*(action: string): ActionType =
   case action.normalize()
   of "install":
     result = actionInstall
+  of "clone":
+    result = actionClone
   of "path":
     result = actionPath
   of "build":
@@ -211,7 +215,7 @@ proc initAction*(options: var Options, key: string) =
   ## `key`.
   let keyNorm = key.normalize()
   case options.action.typ
-  of actionInstall, actionPath, actionDevelop, actionUninstall:
+  of actionInstall, actionClone, actionPath, actionDevelop, actionUninstall:
     options.action.packages = @[]
     options.action.passNimFlags = @[]
   of actionCompile, actionDoc, actionBuild:
@@ -367,7 +371,7 @@ proc parseArgument*(key: string, result: var Options) =
   case result.action.typ
   of actionNil:
     assert false
-  of actionInstall, actionPath, actionDevelop, actionUninstall:
+  of actionInstall, actionClone, actionPath, actionDevelop, actionUninstall:
     # Parse pkg@verRange
     if '@' in key:
       let i = find(key, '@')
