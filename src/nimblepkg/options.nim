@@ -147,7 +147,7 @@ Nimble Options:
       --verbose                   Show all non-debug output.
       --debug                     Show all output including debug messages.
       --noColor                   Don't colorise output.
-      --noSSLCheck                Don't check SSL certificates.
+      --sslCheck                  Check SSL certificates.
 
 For more information read the Github readme:
   https://github.com/nim-lang/nimble#readme
@@ -419,6 +419,7 @@ proc parseFlag*(flag, val: string, result: var Options, kind = cmdLongOption) =
 
   let f = flag.normalize()
 
+  result.disableSslCertCheck = true
   # Global flags.
   var isGlobalFlag = true
   case f
@@ -434,7 +435,7 @@ proc parseFlag*(flag, val: string, result: var Options, kind = cmdLongOption) =
   of "disablevalidation": result.disableValidation = true
   of "nim": result.nim = val
   of "localdeps", "l": result.localdeps = true
-  of "nosslcheck": result.disableSslCertCheck = true
+  of "sslcheck": result.disableSslCertCheck = false
   else: isGlobalFlag = false
 
   var wasFlagHandled = true

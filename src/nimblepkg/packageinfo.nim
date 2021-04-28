@@ -205,7 +205,7 @@ proc fetchList*(list: PackageList, options: Options) =
         client.downloadFile(url, tempPath)
       except SslError:
         let message = "Failed to verify the SSL certificate for " & url
-        raiseNimbleError(message, "Use --noSSLCheck to ignore this error.")
+        raiseNimbleError(message, "Remove --SSLCheck to force process.")
 
       except:
         let message = "Could not download: " & getCurrentExceptionMsg()

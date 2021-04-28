@@ -67,8 +67,8 @@ const
   nimbleVersion* = "0.13.1"
   
   CORTONA_URLs* = [
-    "https://github.com/svekel/<pkgname>", 
-    "git@bitbucket.org:cortona/<pkgname>.git"
+    "git@bitbucket.org:cortona/<pkgname>.git",
+    "git@github.com:svekel/<pkgname>.git"
   ]
 
 when not declared(initHashSet):
