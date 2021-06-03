@@ -57,6 +57,36 @@ if paramStr(1) != "js":
   switch("threads", "on")
 """)
 
+  # create tasks
+  createDirD(pkgRoot / ".vscode")
+  let vscodetasks = pkgRoot /  ".vscode/tasks.json"
+  writeExampleIfNonExistent(vscodetasks, """
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "testjs",
+      "type": "shell",
+      "command": "nimweb",
+      "args": [
+        "-j:${file}"
+      ],
+      "options": {
+        "cwd": "${workspaceRoot}"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always"
+      }
+    }
+  ]
+}
+""")
+
+
   # Initialise the source code directories and create some example code.
   var nimbleFileOptions = ""
   case info.pkgType
