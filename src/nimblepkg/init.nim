@@ -20,12 +20,13 @@ proc writeExampleIfNonExistent(file: string, content: string) =
   else:
     display("Info:", "File " & file & " already exists, did not write " & "example code", priority = HighPriority)
 
+
 proc createPkgStructure*(info: PkgInitInfo, pkgRoot: string) =
   # Create source directory
   createDirD(pkgRoot / info.pkgSrcDir)
 
   # Create gitignore
-  let gitignore = pkgRoot / info.pkgSrcDir / ".gitignore"
+  let gitignore = pkgRoot /  ".gitignore"
   writeExampleIfNonExistent(gitignore, """
 # Ignore all
 *
@@ -36,7 +37,25 @@ proc createPkgStructure*(info: PkgInitInfo, pkgRoot: string) =
 
 .exe
 .run
-  """)
+.js
+""")
+
+  # Create config.nims
+  let confignims = pkgRoot /  "config.nims"
+  writeExampleIfNonExistent(confignims, """
+import os
+
+proc getCompiletimeCurrentDirectory*(): string =
+  when defined(windows):
+    result = staticExec("cd")
+  else:
+    result = staticExec("pwd")
+
+putEnv("WORKINGDIR", getCompiletimeCurrentDirectory())
+
+if paramStr(1) != "js":
+  switch("threads", "on")
+""")
 
   # Initialise the source code directories and create some example code.
   var nimbleFileOptions = ""
