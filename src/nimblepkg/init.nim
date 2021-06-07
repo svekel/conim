@@ -69,7 +69,8 @@ if paramStr(1) != "js":
       "type": "shell",
       "command": "nimweb",
       "args": [
-        "-j:${file}"
+        "-t:${file}",
+        "-c:'-d:release -d:danger'",
       ],
       "options": {
         "cwd": "${workspaceRoot}"
