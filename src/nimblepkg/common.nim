@@ -68,7 +68,7 @@ const
   
   CORTONA_URLs* = [
     "git@bitbucket.org:cortona/<pkgname>.git",
-    "git@github.com:svekel/<pkgname>.git"
+    "https://github.com/svekel/<pkgname>.git"
   ]
 
 when not declared(initHashSet):
