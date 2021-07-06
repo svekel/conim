@@ -205,7 +205,7 @@ proc doDownload(url: string, downloadDir: string, verRange: VersionRange,
                   onlyTip = not options.forceFullClone)
       else:
         # If no commits have been tagged on the repo we just clone HEAD.
-        doClone(downMethod, url, downloadDir) # Grab HEAD.
+        doClone(downMethod, url, downloadDir, onlyTip = not options.forceFullClone) # Grab HEAD.
     of DownloadMethod.hg:
       doClone(downMethod, url, downloadDir, onlyTip = not options.forceFullClone)
       result = getHeadName(downMethod)
@@ -281,7 +281,7 @@ proc clonePkg*(pkg: PkgTuple) =
     display("downloading", "Try $1 using $2" % [url, $DownloadMethod.git], priority = HighPriority)
 
     try:
-      discard doDownload(url, downloadDir, pkg.ver, git, Options())
+      discard doDownload(url, downloadDir, pkg.ver, git, Options(forceFullClone: true))
       break
     except:
       display("downloading", "package not found")
